@@ -1,97 +1,44 @@
-import React, { useEffect, useState } from "react";
-import { NavLink, useNavigate } from "react-router-dom";
-import { supabase } from "../lib/supabase.js";
-import { isAdminEmail } from "../lib/admin.js";
+import React from "react";
+import { NavLink } from "react-router-dom";
+import GoogleTranslate from "./GoogleTranslate";
 
-const BUSINESS_WHATSAPP = "17543669922"; // +1 + number
+const WHATSAPP = "17543669922";
 
 export default function Navbar() {
-  const nav = useNavigate();
-  const [auth, setAuth] = useState({ loading: true, user: null, isAdmin: false });
-
   const openWhatsApp = () => {
-    const msg = encodeURIComponent("Hi! I want to order a MelodyMagic song 🙂");
-    window.open(`https://wa.me/${BUSINESS_WHATSAPP}?text=${msg}`, "_blank");
-  };
-
-  useEffect(() => {
-    let mounted = true;
-
-    async function load() {
-      try {
-        const { data, error } = await supabase.auth.getUser();
-        if (error) throw error;
-
-        const user = data?.user || null;
-
-        let admin = false;
-        if (user?.email) admin = await isAdminEmail(user.email);
-
-        if (mounted) setAuth({ loading: false, user, isAdmin: admin });
-      } catch (e) {
-        // If Supabase env is wrong, we still want the navbar to show login link
-        if (mounted) setAuth({ loading: false, user: null, isAdmin: false });
-        console.error("Navbar auth load failed:", e);
-      }
-    }
-
-    load();
-
-    const { data: sub } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      const user = session?.user || null;
-      let admin = false;
-      if (user?.email) admin = await isAdminEmail(user.email);
-      setAuth({ loading: false, user, isAdmin: admin });
-    });
-
-    return () => sub?.subscription?.unsubscribe?.();
-  }, []);
-
-  const logout = async () => {
-    await supabase.auth.signOut();
-    nav("/");
+    const msg = encodeURIComponent(
+      "Hi! I want to order a personalized MelodyMagic song 🎶"
+    );
+    window.open(`https://wa.me/${WHATSAPP}?text=${msg}`, "_blank");
   };
 
   return (
     <header className="nav">
       <div className="nav__inner">
         <NavLink to="/" className="brand">
-          <span className="brand__logo">♪</span>
+          <span className="brand__logo">🎵</span>
           <span className="brand__text">MelodyMagic</span>
         </NavLink>
 
         <nav className="nav__links">
-          <NavLink to="/" className={({ isActive }) => (isActive ? "link active" : "link")}>
+          <NavLink to="/" className="link">
             Order
           </NavLink>
 
-          <NavLink to="/media" className={({ isActive }) => (isActive ? "link active" : "link")}>
+          <NavLink to="/media" className="link">
             Music Examples
           </NavLink>
 
-          <button className="link link--button" onClick={openWhatsApp} type="button">
+          <button className="link link--button" onClick={openWhatsApp}>
             Contact (WhatsApp)
           </button>
 
-          {/* ALWAYS show Admin Login when not logged in */}
-          {!auth.user && (
-            <NavLink to="/login" className={({ isActive }) => (isActive ? "link active" : "link")}>
-              Admin Login
-            </NavLink>
-          )}
+          <NavLink to="/login" className="link">
+            Admin
+          </NavLink>
 
-          {/* Show Admin only if logged in + allowlisted */}
-          {auth.user && auth.isAdmin && (
-            <NavLink to="/admin" className={({ isActive }) => (isActive ? "link active" : "link")}>
-              Admin
-            </NavLink>
-          )}
-
-          {auth.user && (
-            <button className="link link--button" onClick={logout} type="button">
-              Logout
-            </button>
-          )}
+          {/* 🌐 Google Translate */}
+          <GoogleTranslate />
         </nav>
       </div>
     </header>

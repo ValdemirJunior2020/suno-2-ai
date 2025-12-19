@@ -261,3 +261,48 @@ textarea { resize: vertical; }
   .grid { grid-template-columns: 1fr 1fr; }
   .brand__text { font-size: 18px; }
 }
+/* ===============================
+   GOOGLE TRANSLATE
+================================ */
+.gt-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.gt-label {
+  font-size: 12px;
+  opacity: 0.85;
+}
+
+.gt-box select {
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.gt-box select option {
+  color: black;
+}
+
+/* Hide Google top banner */
+.goog-te-banner-frame.skiptranslate {
+  display: none !important;
+}
+
+body {
+  top: 0 !important;
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+  .gt-wrapper {
+    width: 100%;
+    justify-content: flex-start;
+    margin-top: 8px;
+  }
+}
