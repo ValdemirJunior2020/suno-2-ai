@@ -18,13 +18,21 @@ export default function Navbar() {
     let mounted = true;
 
     async function load() {
-      const { data } = await supabase.auth.getUser();
-      const user = data?.user || null;
+      try {
+        const { data, error } = await supabase.auth.getUser();
+        if (error) throw error;
 
-      let admin = false;
-      if (user?.email) admin = await isAdminEmail(user.email);
+        const user = data?.user || null;
 
-      if (mounted) setAuth({ loading: false, user, isAdmin: admin });
+        let admin = false;
+        if (user?.email) admin = await isAdminEmail(user.email);
+
+        if (mounted) setAuth({ loading: false, user, isAdmin: admin });
+      } catch (e) {
+        // If Supabase env is wrong, we still want the navbar to show login link
+        if (mounted) setAuth({ loading: false, user: null, isAdmin: false });
+        console.error("Navbar auth load failed:", e);
+      }
     }
 
     load();
@@ -36,10 +44,7 @@ export default function Navbar() {
       setAuth({ loading: false, user, isAdmin: admin });
     });
 
-    return () => {
-      mounted = false;
-      sub?.subscription?.unsubscribe?.();
-    };
+    return () => sub?.subscription?.unsubscribe?.();
   }, []);
 
   const logout = async () => {
@@ -64,24 +69,26 @@ export default function Navbar() {
             Music Examples
           </NavLink>
 
-          <button className="link link--button" onClick={openWhatsApp}>
+          <button className="link link--button" onClick={openWhatsApp} type="button">
             Contact (WhatsApp)
           </button>
 
-          {!auth.loading && !auth.user && (
+          {/* ALWAYS show Admin Login when not logged in */}
+          {!auth.user && (
             <NavLink to="/login" className={({ isActive }) => (isActive ? "link active" : "link")}>
               Admin Login
             </NavLink>
           )}
 
-          {!auth.loading && auth.user && auth.isAdmin && (
+          {/* Show Admin only if logged in + allowlisted */}
+          {auth.user && auth.isAdmin && (
             <NavLink to="/admin" className={({ isActive }) => (isActive ? "link active" : "link")}>
               Admin
             </NavLink>
           )}
 
-          {!auth.loading && auth.user && (
-            <button className="link link--button" onClick={logout}>
+          {auth.user && (
+            <button className="link link--button" onClick={logout} type="button">
               Logout
             </button>
           )}

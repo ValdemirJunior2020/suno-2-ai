@@ -3,6 +3,21 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabase.js";
 import { isAdminEmail } from "../lib/admin.js";
 
+function withTimeout(promise, ms = 12000) {
+  return new Promise((resolve, reject) => {
+    const t = setTimeout(() => reject(new Error("Timeout: Supabase not responding")), ms);
+    promise
+      .then((v) => {
+        clearTimeout(t);
+        resolve(v);
+      })
+      .catch((e) => {
+        clearTimeout(t);
+        reject(e);
+      });
+  });
+}
+
 export default function Login() {
   const nav = useNavigate();
   const [loading, setLoading] = useState(false);
@@ -21,25 +36,32 @@ export default function Login() {
     setLoading(true);
 
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email: form.email.trim(),
-        password: form.password,
-      });
+      const { data, error } = await withTimeout(
+        supabase.auth.signInWithPassword({
+          email: form.email.trim(),
+          password: form.password,
+        }),
+        12000
+      );
 
       if (error) throw error;
 
       const email = data?.user?.email;
-      const ok = await isAdminEmail(email);
+      const ok = await withTimeout(isAdminEmail(email), 12000);
 
       if (!ok) {
         await supabase.auth.signOut();
-        setMsg("This account is not authorized for Admin.");
+        setMsg("This account is not authorized for Admin (not in admin_users).");
         return;
       }
 
       nav("/admin");
     } catch (err) {
-      setMsg(err?.message || "Login failed");
+      console.error("Login failed:", err);
+      setMsg(
+        err?.message ||
+          "Login failed. Check Supabase URL/Anon Key and that this user exists in Supabase Auth."
+      );
     } finally {
       setLoading(false);
     }
@@ -55,6 +77,9 @@ export default function Login() {
       {msg && (
         <div className="card card--error">
           <strong>⚠️ {msg}</strong>
+          <div className="muted tiny" style={{ marginTop: 8 }}>
+            If you see a timeout, your Supabase env variables are wrong or Vite needs a restart.
+          </div>
         </div>
       )}
 
@@ -88,10 +113,6 @@ export default function Login() {
         <button className="btn" disabled={!canSubmit || loading}>
           {loading ? "Signing in..." : "Login"}
         </button>
-
-        <p className="muted tiny" style={{ marginTop: 10 }}>
-          Admin access is controlled by the Supabase <code>admin_users</code> allowlist.
-        </p>
       </form>
     </div>
   );
