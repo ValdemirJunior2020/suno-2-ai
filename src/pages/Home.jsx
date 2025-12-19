@@ -9,25 +9,23 @@ const PACKAGE_DEFAULT = { name: "Standard", priceUSD: 10 };
 const OCCASIONS = [
   "Birthday","Anniversary","Christmas","Wedding","Mother's Day","Father's Day","Graduation","Apology","Motivation","Other",
 ];
-
 const MOODS = ["Happy / Celebration","Romantic","Emotional","Funny","Motivational","Chill","Other"];
-
 const MUSIC_STYLES = [
   "Pop","Sertanejo","Forró","Pagode","Gospel","Hip-Hop / Rap","Rock","Reggaeton","Afrobeat","EDM","Lo-fi","Other",
 ];
-
 const LANGUAGES = ["English","Português","Español","Français","Other"];
 
 function normalizeChoice(choice, otherText) {
   if (choice !== "Other") return choice;
-  return (otherText || "").trim() || "Other";
+  const t = (otherText || "").trim();
+  return t ? t : "Other";
 }
 
 export default function Home() {
   const nav = useNavigate();
 
-  const [step, setStep] = useState(1); // 1=form, 2=pay
-  const [loadingSave, setLoadingSave] = useState(false);
+  const [step, setStep] = useState(1);
+  const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
   const [form, setForm] = useState({
@@ -58,7 +56,6 @@ export default function Home() {
     );
   }, [form]);
 
-  // snake_case keys to match Supabase columns
   const payload = useMemo(() => {
     return {
       package: PACKAGE_DEFAULT.name,
@@ -83,11 +80,13 @@ export default function Home() {
   const goPay = (e) => {
     e.preventDefault();
     setError("");
+
     if (!requiredOk) {
       setError("Please fill all required fields.");
       window.scrollTo({ top: 0, behavior: "smooth" });
       return;
     }
+
     setStep(2);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
@@ -100,30 +99,36 @@ export default function Home() {
 
   const savePaidOrder = async ({ details }) => {
     setError("");
-    setLoadingSave(true);
+    setSaving(true);
 
     try {
-      const payerEmail = payload.payer_email || details?.payer?.email_address || null;
+      // If user didn't type payer email, take it from PayPal capture details
+      const payerEmail =
+        payload.payer_email ||
+        details?.payer?.email_address ||
+        details?.purchase_units?.[0]?.payee?.email_address ||
+        null;
+
+      const insertRow = {
+        ...payload,
+        payer_email: payerEmail,
+      };
 
       const { data, error: supaErr } = await supabase
         .from("orders")
-        .insert([{ ...payload, payer_email: payerEmail, status: "paid" }])
+        .insert([insertRow])
         .select("order_id")
         .single();
 
       if (supaErr) throw supaErr;
 
-      // Go to success page with order id
       nav("/success", { state: { orderId: data.order_id } });
     } catch (err) {
-      // Make the error visible (mobile)
-      setError(err?.message || "Payment succeeded but saving failed.");
-      window.scrollTo({ top: 0, behavior: "smooth" });
-      // Also log details for debugging
-      // eslint-disable-next-line no-console
       console.error("Save order failed:", err);
+      setError(err?.message || "Payment succeeded but order saving failed.");
+      window.scrollTo({ top: 0, behavior: "smooth" });
     } finally {
-      setLoadingSave(false);
+      setSaving(false);
     }
   };
 
@@ -131,12 +136,14 @@ export default function Home() {
     <div className="page">
       <section className="hero">
         <h1>Order a Personalized AI Song</h1>
-        <p>Fill the details, then pay to submit your order.</p>
+        <p className="muted">
+          Fill the details, then pay to submit your order. We deliver 2 song versions.
+        </p>
 
         <div className="hero__pill">
           <span className="pill__label">Package</span>
           <span className="pill__value">
-            {PACKAGE_DEFAULT.name} — ${PACKAGE_DEFAULT.priceUSD} (2 versions)
+            {PACKAGE_DEFAULT.name} — ${PACKAGE_DEFAULT.priceUSD}
           </span>
         </div>
       </section>
@@ -144,10 +151,6 @@ export default function Home() {
       {error && (
         <div className="card card--error">
           <strong>⚠️ {error}</strong>
-          <div className="muted tiny" style={{ marginTop: 8 }}>
-            If you paid and still see this, it means PayPal captured but Supabase save failed (RLS/columns).
-            Open Admin after login to confirm.
-          </div>
         </div>
       )}
 
@@ -158,17 +161,17 @@ export default function Home() {
           <div className="grid">
             <div className="field">
               <label>Your Name <span className="req">*</span></label>
-              <input value={form.customerName} onChange={update("customerName")} placeholder="Ex: Junior" />
+              <input value={form.customerName} onChange={update("customerName")} />
             </div>
 
             <div className="field">
               <label>Your Phone <span className="req">*</span></label>
-              <input value={form.customerPhone} onChange={update("customerPhone")} placeholder="Ex: 7543669922" />
+              <input value={form.customerPhone} onChange={update("customerPhone")} />
             </div>
 
             <div className="field">
               <label>Payer Email (optional)</label>
-              <input value={form.payerEmail} onChange={update("payerEmail")} placeholder="Ex: you@email.com" />
+              <input value={form.payerEmail} onChange={update("payerEmail")} />
             </div>
 
             <div className="field">
@@ -183,12 +186,12 @@ export default function Home() {
 
             <div className="field">
               <label>Recipient Name <span className="req">*</span></label>
-              <input value={form.recipientName} onChange={update("recipientName")} placeholder="Who is this song for?" />
+              <input value={form.recipientName} onChange={update("recipientName")} />
             </div>
 
             <div className="field">
               <label>Relationship <span className="req">*</span></label>
-              <input value={form.relationship} onChange={update("relationship")} placeholder="Ex: Mom, Dad, Friend..." />
+              <input value={form.relationship} onChange={update("relationship")} />
             </div>
 
             <div className="field">
@@ -197,7 +200,7 @@ export default function Home() {
                 {MUSIC_STYLES.map((x) => <option key={x} value={x}>{x}</option>)}
               </select>
               {form.musicStyle === "Other" && (
-                <input value={form.musicStyleOther} onChange={update("musicStyleOther")} placeholder="Type the music style..." />
+                <input value={form.musicStyleOther} onChange={update("musicStyleOther")} placeholder="Type the style..." />
               )}
             </div>
 
@@ -223,18 +226,12 @@ export default function Home() {
 
             <div className="field field--full">
               <label>Dedication / Message <span className="req">*</span></label>
-              <textarea
-                value={form.dedication}
-                onChange={update("dedication")}
-                rows={6}
-                placeholder="Write what you want the song to say..."
-              />
+              <textarea value={form.dedication} onChange={update("dedication")} rows={6} />
             </div>
 
             <div className="field">
-              <label>Business WhatsApp (saved with order)</label>
+              <label>WhatsApp (saved with order)</label>
               <input value={form.whatsapp} onChange={update("whatsapp")} />
-              <small className="muted">Default: 7543669922</small>
             </div>
           </div>
 
@@ -246,7 +243,6 @@ export default function Home() {
 
       {step === 2 && (
         <div className="stack">
-          {/* MOBILE-FRIENDLY SUMMARY (always visible) */}
           <div className="card">
             <h2>Review</h2>
             <div className="review">
@@ -267,7 +263,7 @@ export default function Home() {
           <PayPalCheckout
             amountUSD={payload.price_usd}
             description={`MelodyMagic ${payload.package} — ${payload.occasion} for ${payload.recipient_name}`}
-            disabled={loadingSave}
+            disabled={saving}
             onApproved={savePaidOrder}
             onError={(e) => {
               setError(e?.message || "PayPal error");
@@ -275,7 +271,7 @@ export default function Home() {
             }}
           />
 
-          {loadingSave && (
+          {saving && (
             <div className="card">
               <strong>Saving your order…</strong>
               <div className="muted">Please don’t close the page.</div>
