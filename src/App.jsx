@@ -5,6 +5,7 @@ import Home from "./pages/Home.jsx";
 import Media from "./pages/Media.jsx";
 import Login from "./pages/Login.jsx";
 import Admin from "./pages/Admin.jsx";
+import Success from "./pages/Success.jsx";
 import RequireAdmin from "./components/RequireAdmin.jsx";
 
 export default function App() {
@@ -18,8 +19,8 @@ export default function App() {
           <Route path="/" element={<Home />} />
           <Route path="/media" element={<Media />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/success" element={<Success />} />
 
-          {/* Admin is protected */}
           <Route
             path="/admin"
             element={
