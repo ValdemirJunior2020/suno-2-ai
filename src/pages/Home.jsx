@@ -75,7 +75,8 @@ export default function Home() {
       </section>
 
       {/* Promo card (your image component) */}
-      <LyricVideoPromo />
+      <LyricVideoPromo onChooseVideo={() => setPkgId("video")} />
+
 
       <div className="stack">
         <div className="card">
