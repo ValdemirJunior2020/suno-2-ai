@@ -55,3 +55,7 @@ coverage/
 *.mp4
 public/media/*.mp4
 
+
+# Large videos
+public/media/*.mp4
+
