@@ -1,33 +1,37 @@
 import React from "react";
-import LyricVideoPromo from "../components/LyricVideoPromo";
-import ReviewsSection from "../components/ReviewsSection";
-import Footer from "../components/Footer";
+import LyricVideoPromo from "../components/LyricVideoPromo.jsx";
+import ReviewsSection from "../components/ReviewsSection.jsx";
+import Footer from "../components/Footer.jsx";
 
-// If your order form is inside Home already, keep it.
-// This file assumes the page scrolls and includes sections.
+// If you already have an OrderForm component, import it here.
+// Example: import OrderForm from "../components/OrderForm.jsx";
 
 export default function Home() {
   return (
     <div className="page">
-      {/* Promo section near the top */}
+      {/* TOP PROMO (users will see this immediately) */}
       <LyricVideoPromo />
 
-      {/* Your existing order section should have an anchor for footer scroll */}
+      {/* ORDER SECTION (anchor for footer "Order" button) */}
       <section id="order" className="section">
-        <h1>Order a Personalized AI Song</h1>
+        <h1>MelodyMagic</h1>
         <p className="muted">
-          Choose a package, fill the details, then pay to submit your order.
+          Order a personalized song or a personalized lyric video. Fill the details, then pay to submit.
         </p>
 
-        {/* IMPORTANT:
-            Keep your existing Order Form component here (whatever you already use).
-            Example:
-            <OrderForm />
-        */}
+        {/* ✅ Put your order form here */}
+        {/* Replace this placeholder with your real Order Form component */}
+        <div className="card">
+          <p className="muted">
+            Add your Order Form component here (the one you already use for PayPal + saving orders).
+          </p>
+        </div>
       </section>
 
-      {/* Reviews and footer below for non-stop scrolling */}
+      {/* REVIEWS SECTION (anchor for footer "Reviews" button) */}
       <ReviewsSection />
+
+      {/* FOOTER */}
       <Footer />
     </div>
   );
