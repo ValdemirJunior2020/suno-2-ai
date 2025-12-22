@@ -51,3 +51,5 @@ Thumbs.db
 
 # Logs from tools
 coverage/
+# Large media files (do not commit)
+public/media/*.mp4
