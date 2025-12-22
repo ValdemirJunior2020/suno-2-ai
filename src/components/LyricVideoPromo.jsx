@@ -3,130 +3,100 @@ import React from "react";
 
 const BUSINESS_WHATSAPP = "7543669922";
 
-/**
- * Promo component that shows BOTH products:
- * - Personalized Song ($10)
- * - Personalized Lyric Video ($20)
- *
- * Props:
- * - selectedPkgId: string (current selected package id)
- * - onSelect: (pkgId: string) => void
- */
 export default function LyricVideoPromo({ selectedPkgId, onSelect }) {
   const waLink = `https://wa.me/1${BUSINESS_WHATSAPP}`;
 
-  const btnStyle = (active) => ({
-    backgroundColor: active ? "#16a34a" : "#1e3a8a", // green / dark blue
-    color: "#ffffff",
-    border: "none",
-    transition: "background-color 0.25s ease",
-    padding: "10px 14px",
-    borderRadius: 10,
-    fontWeight: 700,
-    cursor: "pointer",
-  });
-
-  const cardStyle = {
-    padding: 16,
-    borderRadius: 16,
+  const pick = (id) => (e) => {
+    e.preventDefault();
+    onSelect?.(id);
   };
 
-  return (
-    <div
-      style={{
-        display: "grid",
-        gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
-        gap: 16,
-        marginBottom: 16,
-      }}
-    >
-      {/* SONG $10 */}
-      <div className="card" style={cardStyle}>
-        <h2 style={{ marginTop: 0, marginBottom: 8 }}>
-          🎵 Personalized Song — <span style={{ fontWeight: 800 }}>$10</span>
-        </h2>
+  const btnStyle = (active) => ({
+    width: "100%",
+    padding: "12px 14px",
+    borderRadius: 12,
+    border: "none",
+    backgroundColor: active ? "#16a34a" : "#1e3a8a", // green / dark blue
+    color: "#fff",
+    fontWeight: 900,
+    cursor: "pointer",
+    transition: "background-color 0.2s ease",
+    touchAction: "manipulation",
+  });
 
+  return (
+    <div style={{ display: "grid", gap: 14, marginBottom: 18 }}>
+      {/* $10 SONG */}
+      <div className="card" style={{ padding: 14 }}>
+        <h2 style={{ marginTop: 0, marginBottom: 8 }}>
+          🎵 Personalized Song — <strong>$10</strong>
+        </h2>
         <p className="muted" style={{ marginTop: 0 }}>
-          A personalized song (audio only). Perfect for gifts, birthdays, anniversaries, and
-          motivation.
+          Audio-only personalized song with your dedication.
         </p>
 
-        <ul style={{ marginTop: 10, marginBottom: 14, paddingLeft: 18 }}>
-          <li>Custom lyrics + dedication</li>
-          <li>Choose style, mood, and language</li>
-          <li>Delivered via WhatsApp link</li>
-        </ul>
+        <button
+          type="button"
+          style={btnStyle(selectedPkgId === "standard")}
+          onClick={pick("standard")}
+          onPointerUp={pick("standard")}
+          onTouchEnd={pick("standard")}
+        >
+          {selectedPkgId === "standard" ? "✔ Song Selected" : "Pick Song ($10)"}
+        </button>
 
-        <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-          <button
-            type="button"
-            style={btnStyle(selectedPkgId === "standard")}
-            onClick={() => onSelect?.("standard")}
-          >
-            {selectedPkgId === "standard" ? "✔ Song Selected" : "Choose Song ($10)"}
-          </button>
-
-          <a
-            className="btn btn--ghost"
-            href={waLink}
-            target="_blank"
-            rel="noreferrer"
-            style={{ alignSelf: "center" }}
-          >
-            Order via WhatsApp
-          </a>
-        </div>
+        <a
+          className="btn btn--ghost"
+          href={waLink}
+          target="_blank"
+          rel="noreferrer"
+          style={{ display: "block", marginTop: 10, textAlign: "center" }}
+        >
+          Order via WhatsApp: {BUSINESS_WHATSAPP}
+        </a>
       </div>
 
-      {/* LYRIC VIDEO $20 */}
-      <div className="card" style={cardStyle}>
+      {/* $20 VIDEO */}
+      <div className="card" style={{ padding: 14 }}>
         <h2 style={{ marginTop: 0, marginBottom: 8 }}>
-          🎬 Personalized Lyric Video — <span style={{ fontWeight: 800 }}>$20</span>
+          🎬 Personalized Lyric Video — <strong>$20</strong>
         </h2>
-
         <p className="muted" style={{ marginTop: 0 }}>
-          Personalized lyric video with synced lyrics — great for sharing on WhatsApp and social
-          media.
+          Lyrics synchronized on a video — perfect for sharing.
         </p>
 
-        <div style={{ marginTop: 12, marginBottom: 12 }}>
+        <div style={{ margin: "10px 0" }}>
           <img
             src="/media/video.jpeg"
             alt="Personalized Lyric Video"
             style={{
               width: "100%",
               height: "auto",
-              borderRadius: 14,
+              borderRadius: 12,
               display: "block",
             }}
           />
         </div>
 
-        <ul style={{ marginTop: 10, marginBottom: 14, paddingLeft: 18 }}>
-          <li>Lyrics synced to the song</li>
-          <li>Personalized dedication included</li>
-          <li>Delivered via WhatsApp link</li>
-        </ul>
+        <button
+          type="button"
+          style={btnStyle(selectedPkgId === "video")}
+          onClick={pick("video")}
+          onPointerUp={pick("video")}
+          onTouchEnd={pick("video")}
+        >
+          {selectedPkgId === "video" ? "✔ Video Selected" : "Pick Video ($20)"}
+        </button>
 
-        <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-          <button
-            type="button"
-            style={btnStyle(selectedPkgId === "video")}
-            onClick={() => onSelect?.("video")}
-          >
-            {selectedPkgId === "video" ? "✔ Lyric Video Selected" : "Choose Lyric Video ($20)"}
-          </button>
-
-          <a
-            className="btn btn--ghost"
-            href={waLink}
-            target="_blank"
-            rel="noreferrer"
-            style={{ alignSelf: "center" }}
-          >
-            Order via WhatsApp
-          </a>
-        </div>
+        <a
+          className="btn btn--ghost"
+          href={waLink}
+          target="_blank"
+          rel="noreferrer"
+          style={{ display: "block", marginTop: 10, textAlign: "center" }}
+        >
+          Order via WhatsApp: {BUSINESS_WHATSAPP}
+        </a>
       </div>
     </div>
   );

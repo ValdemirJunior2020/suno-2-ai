@@ -1,16 +1,12 @@
+// src/pages/Home.jsx
 import React, { useMemo, useState } from "react";
-import {
-  PACKAGES,
-  DEFAULT_PACKAGE_ID,
-  getPackageById,
-} from "../lib/packages";
+import { PACKAGES, DEFAULT_PACKAGE_ID, getPackageById } from "../lib/packages";
 
 import PayPalCheckout from "../components/PayPalCheckout";
 import LyricVideoPromo from "../components/LyricVideoPromo";
 
 export default function Home() {
   const [pkgId, setPkgId] = useState(DEFAULT_PACKAGE_ID);
-
   const pkg = useMemo(() => getPackageById(pkgId), [pkgId]);
 
   // Order fields (match your Supabase columns)
@@ -31,8 +27,8 @@ export default function Home() {
 
   const orderDraft = useMemo(
     () => ({
-      package: pkg.label,         // saves friendly label
-      priceUSD: pkg.priceUSD,      // numeric
+      package: pkg.label,
+      priceUSD: pkg.priceUSD,
       payerEmail,
       customerName,
       customerPhone,
@@ -70,13 +66,12 @@ export default function Home() {
         <p>
           Fill the details below, then pay to submit your order.
           <br />
-          <strong>NEW:</strong> Personalized Lyric Videos are available for <strong>$20</strong>.
+          Choose: <strong>$10 Song</strong> or <strong>$20 Lyric Video</strong>.
         </p>
       </section>
 
-      {/* Promo card (your image component) */}
-      <LyricVideoPromo onChooseVideo={() => setPkgId("video")} />
-
+      {/* ✅ FIX: pass selectedPkgId + onSelect */}
+      <LyricVideoPromo selectedPkgId={pkgId} onSelect={setPkgId} />
 
       <div className="stack">
         <div className="card">
@@ -85,6 +80,7 @@ export default function Home() {
           <label className="label">
             Package
             <select
+              id="package-select"
               className="input"
               value={pkgId}
               onChange={(e) => setPkgId(e.target.value)}
@@ -197,20 +193,16 @@ export default function Home() {
 
             <label className="label">
               Language
-              <select
+              <input
                 className="input"
                 value={languages}
                 onChange={(e) => setLanguages(e.target.value)}
-              >
-                <option>English</option>
-                <option>Português</option>
-                <option>Español</option>
-                <option>Français</option>
-              </select>
+                placeholder="English, Português, Español..."
+              />
             </label>
 
             <label className="label">
-              WhatsApp to contact you
+              WhatsApp (your number)
               <input
                 className="input"
                 value={whatsapp}
@@ -218,22 +210,29 @@ export default function Home() {
                 placeholder="7543669922"
               />
             </label>
+
+            <label className="label">
+              Status
+              <select
+                className="input"
+                value={status}
+                onChange={(e) => setStatus(e.target.value)}
+              >
+                <option value="pending">pending</option>
+                <option value="paid">paid</option>
+                <option value="sent">sent</option>
+              </select>
+            </label>
           </div>
         </div>
 
-        {/* PAYMENT */}
         <div className="card">
-          <h2 style={{ marginTop: 0 }}>Payment</h2>
+          <h2 style={{ marginTop: 0 }}>Checkout</h2>
           <p className="muted">
-            You will be charged <strong>${pkg.priceUSD.toFixed(2)}</strong>. After
-            payment approval, your order is saved automatically.
+            You will be charged <strong>${pkg.priceUSD.toFixed(2)}</strong>.
           </p>
 
-          <PayPalCheckout
-            amount={pkg.priceUSD}
-            orderDraft={orderDraft}
-            onStatusChange={(s) => setStatus(s)}
-          />
+          <PayPalCheckout amount={pkg.priceUSD} orderDraft={orderDraft} />
         </div>
       </div>
     </div>
