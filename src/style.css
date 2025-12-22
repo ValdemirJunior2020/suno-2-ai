@@ -15,6 +15,22 @@
   --radius2: 22px;
 }
 
+.app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.footer__link {
+  background: transparent;
+  border: none;
+  padding: 0;
+  color: inherit;
+  cursor: pointer;
+  text-decoration: underline;
+  font: inherit;
+}
+
 * { box-sizing: border-box; }
 html, body { height: 100%; }
 
@@ -304,5 +320,167 @@ body {
     width: 100%;
     justify-content: flex-start;
     margin-top: 8px;
+  }
+}
+/* ===============================
+   LYRIC VIDEO PROMO
+================================ */
+.promo {
+  margin: 18px 0 10px;
+}
+
+.promo__card {
+  display: grid;
+  gap: 14px;
+  padding: 14px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(10px);
+}
+
+.promo__title {
+  margin: 0 0 6px;
+  font-size: 22px;
+}
+
+.promo__desc {
+  margin: 0 0 12px;
+  opacity: 0.9;
+  line-height: 1.4;
+}
+
+.promo__price {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.promo__badge {
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-weight: 800;
+  background: rgba(255, 215, 0, 0.18);
+  border: 1px solid rgba(255, 215, 0, 0.35);
+}
+
+.promo__note {
+  opacity: 0.85;
+  font-size: 13px;
+}
+
+.promo__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.promo__media {
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.promo__img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* Desktop layout */
+@media (min-width: 900px) {
+  .promo__card {
+    grid-template-columns: 1.2fr 1fr;
+    align-items: center;
+    padding: 18px;
+  }
+}
+/* ===============================
+   FOOTER
+================================ */
+.footer {
+  margin-top: 22px;
+  padding: 18px 0 26px;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.footer__inner {
+  display: grid;
+  gap: 14px;
+}
+
+.footer__brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.footer__logo {
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.footer__title {
+  font-weight: 800;
+}
+
+.footer__links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.footer__link {
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.06);
+  color: inherit;
+  padding: 8px 12px;
+  border-radius: 999px;
+  cursor: pointer;
+  text-decoration: none;
+  font-size: 14px;
+}
+
+.footer__link:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+@media (min-width: 860px) {
+  .footer__inner {
+    grid-template-columns: 1.2fr 1fr;
+    align-items: center;
+  }
+}
+/* ===============================
+   MEDIA PAGE
+================================ */
+.media-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.media-item {
+  padding: 12px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.media-title {
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+@media (min-width: 860px) {
+  .media-grid {
+    grid-template-columns: repeat(3, 1fr);
   }
 }
