@@ -1,165 +1,235 @@
 import React, { useEffect, useMemo, useState } from "react";
 import * as XLSX from "xlsx";
-import { supabase } from "../lib/supabase.js";
+import { supabase } from "../lib/supabase";
+
+function isVideoOrder(order) {
+  const pkg = (order?.package || "").toLowerCase();
+  return pkg.includes("lyric video") || pkg.includes("video");
+}
+
+function formatDate(ts) {
+  if (!ts) return "";
+  try {
+    return new Date(ts).toLocaleString();
+  } catch {
+    return ts;
+  }
+}
 
 export default function Admin() {
+  const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [orders, setOrders] = useState([]);
   const [error, setError] = useState("");
 
-  const fetchOrders = async () => {
+  // Simple filters
+  const [typeFilter, setTypeFilter] = useState("all"); // all | song | video
+  const [statusFilter, setStatusFilter] = useState("all"); // all | paid | pending | etc.
+  const [q, setQ] = useState("");
+
+  async function fetchOrders() {
     setLoading(true);
     setError("");
-    try {
-      const { data, error: supaErr } = await supabase
-        .from("orders")
-        .select(
-          "order_id,created_at,package,price_usd,payer_email,customer_name,customer_phone,status,occasion,recipient_name,relationship,dedication,music_style,mood,languages,whatsapp"
-        )
-        .order("created_at", { ascending: false });
 
-      if (supaErr) throw supaErr;
-      setOrders(data || []);
-    } catch (e) {
-      setError(e?.message || "Failed to load orders");
-    } finally {
+    const { data, error } = await supabase
+      .from("orders")
+      .select("*")
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      setError(error.message || "Failed to load orders");
+      setRows([]);
       setLoading(false);
+      return;
     }
-  };
+
+    setRows(data || []);
+    setLoading(false);
+  }
 
   useEffect(() => {
     fetchOrders();
   }, []);
 
-  const countPaid = useMemo(() => {
-    return orders.filter((o) => String(o.status || "").toLowerCase() === "paid").length;
-  }, [orders]);
+  const filtered = useMemo(() => {
+    const text = q.trim().toLowerCase();
 
-  const exportExcel = () => {
-    const rows = orders.map((o) => ({
-      order_id: o.order_id,
-      created_at: o.created_at,
-      package: o.package,
-      price_usd: o.price_usd,
-      payer_email: o.payer_email,
-      customer_name: o.customer_name,
-      customer_phone: o.customer_phone,
-      status: o.status,
-      occasion: o.occasion,
-      recipient_name: o.recipient_name,
-      relationship: o.relationship,
-      dedication: o.dedication,
-      music_style: o.music_style,
-      mood: o.mood,
-      languages: o.languages,
-      whatsapp: o.whatsapp,
+    return (rows || []).filter((r) => {
+      const type = isVideoOrder(r) ? "video" : "song";
+      if (typeFilter !== "all" && type !== typeFilter) return false;
+
+      const st = (r.status || "").toLowerCase();
+      if (statusFilter !== "all" && st !== statusFilter) return false;
+
+      if (!text) return true;
+
+      const hay = [
+        r.customer_name,
+        r.payer_email,
+        r.customer_phone,
+        r.recipient_name,
+        r.occasion,
+        r.relationship,
+        r.package,
+        r.music_style,
+        r.mood,
+        r.languages,
+        r.whatsapp,
+        r.status,
+      ]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+
+      return hay.includes(text);
+    });
+  }, [rows, typeFilter, statusFilter, q]);
+
+  function downloadExcel() {
+    const exportRows = filtered.map((r) => ({
+      order_id: r.order_id,
+      created_at: r.created_at,
+      order_type: isVideoOrder(r) ? "video" : "song",
+      package: r.package,
+      price_usd: r.price_usd,
+      payer_email: r.payer_email,
+      customer_name: r.customer_name,
+      customer_phone: r.customer_phone,
+      status: r.status,
+      occasion: r.occasion,
+      recipient_name: r.recipient_name,
+      relationship: r.relationship,
+      dedication: r.dedication,
+      music_style: r.music_style,
+      mood: r.mood,
+      languages: r.languages,
+      whatsapp: r.whatsapp,
     }));
 
-    const ws = XLSX.utils.json_to_sheet(rows);
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "orders");
+    const ws = XLSX.utils.json_to_sheet(exportRows);
+    XLSX.utils.book_append_sheet(wb, ws, "Orders");
 
-    const stamp = new Date().toISOString().slice(0, 10);
-    XLSX.writeFile(wb, `melodymagic-orders-${stamp}.xlsx`);
-  };
+    const filename = `melodymagic-orders-${new Date()
+      .toISOString()
+      .slice(0, 10)}.xlsx`;
+
+    XLSX.writeFile(wb, filename);
+  }
 
   return (
     <div className="page">
       <section className="hero">
-        <h1>Admin Orders</h1>
-        <p className="muted">
-          Total: <strong>{orders.length}</strong> — Paid: <strong>{countPaid}</strong>
-        </p>
-
-        <div className="adminActions">
-          <button className="btn" onClick={fetchOrders} disabled={loading}>
-            {loading ? "Loading..." : "Refresh"}
-          </button>
-
-          <button
-            className="btn btn--ghost"
-            onClick={exportExcel}
-            disabled={!orders.length}
-            type="button"
-          >
-            Export Excel
-          </button>
-        </div>
+        <h1>Admin</h1>
+        <p>View orders and export to Excel.</p>
       </section>
 
-      {error && (
-        <div className="card card--error">
-          <strong>⚠️ {error}</strong>
+      <div className="stack">
+        <div className="card">
+          <div className="adminbar">
+            <div className="adminbar__left">
+              <button className="btn" onClick={fetchOrders} disabled={loading}>
+                {loading ? "Refreshing..." : "Refresh"}
+              </button>
+
+              <button className="btn btn--ghost" onClick={downloadExcel} disabled={!filtered.length}>
+                Export Excel ({filtered.length})
+              </button>
+            </div>
+
+            <div className="adminbar__right">
+              <select
+                className="input input--sm"
+                value={typeFilter}
+                onChange={(e) => setTypeFilter(e.target.value)}
+              >
+                <option value="all">All Types</option>
+                <option value="song">Songs</option>
+                <option value="video">Lyric Videos</option>
+              </select>
+
+              <select
+                className="input input--sm"
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+              >
+                <option value="all">All Status</option>
+                <option value="paid">paid</option>
+                <option value="pending">pending</option>
+              </select>
+
+              <input
+                className="input input--sm"
+                value={q}
+                onChange={(e) => setQ(e.target.value)}
+                placeholder="Search..."
+              />
+            </div>
+          </div>
+
+          {error && <div className="card card--error">{error}</div>}
+
+          {loading ? (
+            <p className="muted">Loading orders...</p>
+          ) : filtered.length === 0 ? (
+            <p className="muted">No orders found.</p>
+          ) : (
+            <div className="tablewrap">
+              <table className="table">
+                <thead>
+                  <tr>
+                    <th>Type</th>
+                    <th>Date</th>
+                    <th>Customer</th>
+                    <th>Occasion</th>
+                    <th>Package</th>
+                    <th>Status</th>
+                    <th>$</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filtered.map((r) => (
+                    <tr key={r.order_id}>
+                      <td>
+                        {isVideoOrder(r) ? (
+                          <span className="pill pill--video">🎬 Video</span>
+                        ) : (
+                          <span className="pill pill--song">🎵 Song</span>
+                        )}
+                      </td>
+                      <td>{formatDate(r.created_at)}</td>
+                      <td>
+                        <div style={{ fontWeight: 600 }}>{r.customer_name || "-"}</div>
+                        <div className="muted" style={{ fontSize: 12 }}>
+                          {r.payer_email || ""}
+                        </div>
+                      </td>
+                      <td>{r.occasion || "-"}</td>
+                      <td>{r.package || "-"}</td>
+                      <td>
+                        <span className={`pill ${String(r.status).toLowerCase() === "paid" ? "pill--paid" : "pill--pending"}`}>
+                          {r.status || "pending"}
+                        </span>
+                      </td>
+                      <td>{r.price_usd != null ? Number(r.price_usd).toFixed(2) : "-"}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
-      )}
 
-      <div className="card">
-        <div className="tableWrap">
-          <table className="table">
-            <thead>
-              <tr>
-                <th>Date</th>
-                <th>Order</th>
-                <th>Status</th>
-                <th>Customer</th>
-                <th>Occasion</th>
-                <th>Recipient</th>
-                <th>Style</th>
-                <th>Mood</th>
-                <th>Lang</th>
-                <th>Price</th>
-              </tr>
-            </thead>
-
-            <tbody>
-              {orders.map((o) => (
-                <tr key={o.order_id}>
-                  <td className="nowrap">
-                    {String(o.created_at || "").replace("T", " ").slice(0, 16)}
-                  </td>
-
-                  <td className="mono">{String(o.order_id || "").slice(0, 8)}…</td>
-
-                  <td>
-                    <span
-                      className={
-                        String(o.status || "").toLowerCase() === "paid"
-                          ? "badge badge--ok"
-                          : "badge"
-                      }
-                    >
-                      {o.status}
-                    </span>
-                  </td>
-
-                  <td className="nowrap">
-                    {o.customer_name}
-                    <div className="muted tiny">{o.customer_phone}</div>
-                  </td>
-
-                  <td>{o.occasion}</td>
-                  <td>{o.recipient_name}</td>
-                  <td>{o.music_style}</td>
-                  <td>{o.mood}</td>
-                  <td>{o.languages}</td>
-                  <td className="nowrap">${Number(o.price_usd || 0).toFixed(2)}</td>
-                </tr>
-              ))}
-
-              {!orders.length && !loading && (
-                <tr>
-                  <td colSpan="10" className="muted">
-                    No orders yet.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+        <div className="card">
+          <h3 style={{ marginTop: 0 }}>Quick Notes</h3>
+          <ul className="muted" style={{ marginTop: 8 }}>
+            <li>
+              <strong>🎬 Video</strong> orders are detected when the <code>package</code> text includes “Lyric Video”.
+            </li>
+            <li>
+              Export downloads an <strong>.xlsx</strong> file directly to your computer when you click <strong>Export Excel</strong>.
+            </li>
+          </ul>
         </div>
-
-        <p className="muted tiny" style={{ marginTop: 12 }}>
-          Export includes all fields (dedication, payer email, WhatsApp, etc.)
-        </p>
       </div>
     </div>
   );
