@@ -59,7 +59,7 @@ export default function Media() {
 
           <div style={{ marginTop: 10 }}>
             <a
-              href="https://drive.google.com/file/d/1LHwU4C8B73iH9iwWzbi37SkMa-fMVayy/view?usp=sharing"
+              href="https://res.cloudinary.com/review-site/video/upload/1222-1_I1pv2DPX_ubkskx.mp4?_s=vp-3.5.2"
               target="_blank"
               rel="noreferrer"
               className="btn btn--ghost"
