@@ -8,7 +8,7 @@ const tracks = [
 ];
 
 export default function Media() {
-  const drivePreviewUrl =
+  const videoEmbedUrl =
     "https://drive.google.com/file/d/1LHwU4C8B73iH9iwWzbi37SkMa-fMVayy/preview";
 
   return (
@@ -18,29 +18,29 @@ export default function Media() {
         <p>Listen to MelodyMagic examples and watch a lyric video sample.</p>
       </section>
 
-      {/* 🎬 LYRIC VIDEO SAMPLE (SMALL + MOBILE FRIENDLY) */}
+      {/* 🎬 LYRIC VIDEO SAMPLE */}
       <section className="stack">
         <div className="card" style={{ textAlign: "center" }}>
           <h3 style={{ marginTop: 0 }}>🎬 Personalized Lyric Video Example</h3>
           <p className="muted">
-            Example of a personalized lyric video — available for <strong>$20</strong>
+            Vertical lyric video sample — available for <strong>$20</strong>
           </p>
 
-          {/* Responsive embed box */}
+          {/* Mobile-first vertical embed */}
           <div
             style={{
               maxWidth: 360,
               margin: "12px auto 0",
-              borderRadius: 12,
+              borderRadius: 14,
               overflow: "hidden",
               border: "1px solid rgba(255,255,255,0.12)",
-              background: "rgba(0,0,0,0.35)",
+              background: "#000",
             }}
           >
+            {/* 9:16 aspect ratio */}
             <div style={{ position: "relative", paddingTop: "177.78%" }}>
-              {/* 9:16 aspect ratio (vertical) */}
               <iframe
-                src={drivePreviewUrl}
+                src={videoEmbedUrl}
                 title="Lyric Video Example"
                 allow="autoplay"
                 allowFullScreen
@@ -59,10 +59,10 @@ export default function Media() {
 
           <div style={{ marginTop: 10 }}>
             <a
-              className="btn btn--ghost"
               href="https://drive.google.com/file/d/1LHwU4C8B73iH9iwWzbi37SkMa-fMVayy/view?usp=sharing"
               target="_blank"
               rel="noreferrer"
+              className="btn btn--ghost"
             >
               Open video in Google Drive
             </a>
